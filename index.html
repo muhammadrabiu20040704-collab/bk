@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Schedule & Alarm App</title>
+  <style>
+    :root {
+      --primary-color: #0f172a;
+      --secondary-color: #1e293b;
+      --accent-color: #38bdf8;
+      --text-color: #e2e8f0;
+      --muted-color: #94a3b8;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --card-radius: 1rem;
+      --shadow: 0 20px 50px rgba(15, 23, 42, 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      font-family: Inter, system-ui, sans-serif;
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.15), transparent 40%),
+        linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+      color: var(--text-color);
+    }
+
+    body {
+      padding: 1rem;
+    }
+
+    .app-shell {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: grid;
+      gap: 1rem;
+    }
+
+    header {
+      display: grid;
+      gap: 1rem;
+      padding: 1.25rem;
+      border-radius: var(--card-radius);
+      background: rgba(15, 23, 42, 0.9);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 1rem;
+      z-index: 10;
+    }
+
+    .title-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 2vw, 2.4rem);
+      letter-spacing: 0.02em;
+    }
+
+    .header-meta {
+      display: grid;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .chip {
+      padding: 0.6rem 0.85rem;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--text-color);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      font-size: 0.95rem;
+    }
+
+    .grid-2, .grid-3, .grid-4 {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: var(--card-radius);
+      padding: 1.2rem;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+
+    .card h2 {
+      margin: 0 0 1rem;
+      font-size: 1.05rem;
+      letter-spacing: 0.02em;
+    }
+
+    .stat-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 0.6rem;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.15);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.9), rgba(56, 189, 248, 0.5));
+      transition: width 0.4s ease;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    label {
+      display: grid;
+      gap: 0.35rem;
+      font-size: 0.95rem;
+      color: var(--muted-color);
+    }
+
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 0.75rem;
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-color);
+      padding: 0.9rem 1rem;
+      font: inherit;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .button, .button-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      border-radius: 999px;
+      background: var(--accent-color);
+      color: #0f172a;
+      text-decoration: none;
+      padding: 0.95rem 1.3rem;
+      cursor: pointer;
+      font: inherit;
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+
+    .button:hover, .button-icon:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.05);
+    }
+
+    .button-secondary {
+      background: rgba(148, 163, 184, 0.15);
+      color: var(--text-color);
+    }
+
+    .schedule-list {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .schedule-item {
+      padding: 1rem;
+      border-radius: var(--card-radius);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .schedule-item.active {
+      border-color: var(--accent-color);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .schedule-meta {
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .label-pill {
+      display: inline-flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+
+    .pill {
+      padding: 0.35rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      background: rgba(148, 163, 184, 0.14);
+      color: var(--text-color);
+    }
+
+    .pill.high { background: rgba(239, 68, 68, 0.15); }
+    .pill.medium { background: rgba(251, 191, 36, 0.15); }
+    .pill.low { background: rgba(34, 197, 94, 0.15); }
+
+    .schedule-item h3 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .schedule-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      justify-content: flex-start;
+      align-items: flex-end;
+    }
+
+    .split {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 0.5rem;
+    }
+
+    .calendar-cell {
+      min-height: 100px;
+      padding: 0.75rem;
+      border-radius: 1rem;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      overflow: hidden;
+      display: grid;
+      gap: 0.4rem;
+    }
+
+    .calendar-cell.today {
+      border-color: var(--accent-color);
+      box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.35);
+    }
+
+    .calendar-cell span {
+      font-size: 0.85rem;
+      color: var(--muted-color);
+    }
+
+    .day-count {
+      margin-top: auto;
+      font-size: 0.85rem;
+      color: var(--text-color);
+    }
+
+    .notification-list {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .notification-item {
+      padding: 0.9rem;
+      border-radius: 0.95rem;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .notification-item strong {
+      display: block;
+      color: var(--accent-color);
+      font-size: 0.95rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--muted-color);
+      padding: 2rem 1rem;
+      background: rgba(15, 23, 42, 0.75);
+      border-radius: var(--card-radius);
+      border: 1px dashed rgba(148, 163, 184, 0.2);
+    }
+
+    .small-text {
+      font-size: 0.9rem;
+      color: var(--muted-color);
+    }
+
+    @media (max-width: 980px) {
+      .grid-2, .grid-3, .grid-4 {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+      }
+      .split {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 0.75rem;
+      }
+      .button, .button-icon {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <div class="title-group">
+        <div>
+          <h1>Schedule & Alarm Dashboard</h1>
+          <p class="small-text">Manage tasks, alarms, notifications and calendar in one place.</p>
+        </div>
+        <div class="header-meta">
+          <div class="chips">
+            <span class="chip" id="current-date">Loading date...</span>
+            <span class="chip" id="current-time">00:00:00</span>
+          </div>
+          <div class="chips">
+            <button class="button-secondary button" type="button" id="request-permission">Enable Notifications</button>
+          </div>
+        </div>
+      </div>
+      <div class="grid-4">
+        <div class="card stat-card">
+          <h2>Total Tasks</h2>
+          <span class="stat-value" id="total-count">0</span>
+        </div>
+        <div class="card stat-card">
+          <h2>Completed</h2>
+          <span class="stat-value" id="completed-count">0</span>
+        </div>
+        <div class="card stat-card">
+          <h2>Pending</h2>
+          <span class="stat-value" id="pending-count">0</span>
+        </div>
+        <div class="card stat-card">
+          <h2>High Priority</h2>
+          <span class="stat-value" id="high-count">0</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="card">
+      <div class="grid-2">
+        <div>
+          <h2>Add / Edit Schedule</h2>
+          <form id="schedule-form">
+            <div class="form-grid">
+              <label>Title
+                <input type="text" id="title" required placeholder="Task title" />
+              </label>
+              <label>Category
+                <select id="category" required>
+                  <option value="study">Study</option>
+                  <option value="work">Work</option>
+                  <option value="personal">Personal</option>
+                  <option value="health">Health</option>
+                  <option value="meeting">Meeting</option>
+                  <option value="other">Other</option>
+                </select>
+              </label>
+              <label>Description
+                <textarea id="description" placeholder="Task description"></textarea>
+              </label>
+              <label>Date
+                <input type="date" id="date" required />
+              </label>
+              <label>Time
+                <input type="time" id="time" required />
+              </label>
+              <label>Priority
+                <select id="priority" required>
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </label>
+              <label>Status
+                <select id="status" required>
+                  <option value="pending">Pending</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </label>
+              <label>Custom Category
+                <input type="text" id="custom-category" placeholder="Create custom category" />
+              </label>
+            </div>
+            <div class="actions">
+              <button class="button" type="submit">Save Schedule</button>
+              <button class="button-secondary button" type="button" id="reset-form">Clear</button>
+            </div>
+          </form>
+        </div>
+        <div>
+          <h2>Search & Filter</h2>
+          <div class="form-grid">
+            <label>Search
+              <input type="search" id="search" placeholder="Search by title, description, or category" />
+            </label>
+            <label>Filter by Category
+              <select id="filter-category">
+                <option value="all">All</option>
+              </select>
+            </label>
+            <label>Filter by Priority
+              <select id="filter-priority">
+                <option value="all">All</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </label>
+            <label>Filter by Status
+              <select id="filter-status">
+                <option value="all">All</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+              </select>
+            </label>
+            <label>Filter by Date
+              <input type="date" id="filter-date" />
+            </label>
+            <label>Sort Tasks
+              <select id="sort-tasks">
+                <option value="date-asc">Date Ascending</option>
+                <option value="date-desc">Date Descending</option>
+                <option value="priority">Priority</option>
+                <option value="createdAt">Created At</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="calendar-header">
+        <div>
+          <h2>Calendar View</h2>
+          <p class="small-text">Click any day to show tasks assigned to that date.</p>
+        </div>
+        <div class="actions">
+          <button class="button-secondary button" type="button" id="prev-month">Previous</button>
+          <button class="button-secondary button" type="button" id="next-month">Next</button>
+        </div>
+      </div>
+      <div class="calendar-grid" id="calendar-grid"></div>
+    </section>
+
+    <section class="grid-2">
+      <div class="card">
+        <h2>Schedule List</h2>
+        <div id="schedule-list" class="schedule-list"></div>
+        <div id="empty-state" class="empty-state" hidden>
+          <p>No schedules found. Use the form above to add a task.</p>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Notifications</h2>
+        <div class="actions">
+          <button class="button-secondary button" type="button" id="clear-notifications">Clear Notifications</button>
+        </div>
+        <div id="notification-list" class="notification-list"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Statistics</h2>
+      <div class="grid-4">
+        <div class="stat-card">
+          <span>Total</span>
+          <span class="stat-value" id="stats-total">0</span>
+          <div class="progress-bar"><span class="progress-fill" id="progress-total" style="width: 0%"></span></div>
+        </div>
+        <div class="stat-card">
+          <span>Completed</span>
+          <span class="stat-value" id="stats-completed">0</span>
+          <div class="progress-bar"><span class="progress-fill" id="progress-completed" style="width: 0%"></span></div>
+        </div>
+        <div class="stat-card">
+          <span>Pending</span>
+          <span class="stat-value" id="stats-pending">0</span>
+          <div class="progress-bar"><span class="progress-fill" id="progress-pending" style="width: 0%"></span></div>
+        </div>
+        <div class="stat-card">
+          <span>Low Priority</span>
+          <span class="stat-value" id="stats-low">0</span>
+          <div class="progress-bar"><span class="progress-fill" id="progress-low" style="width: 0%"></span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <audio id="alarm-sound"></audio>
+
+  <script>
+    const STORAGE_KEY = 'scheduleAlarmAppData';
+    const NOTIF_KEY = 'scheduleAlarmNotifications';
+    const categories = ['study', 'work', 'personal', 'health', 'meeting', 'other'];
+    let tasks = [];
+    let notifications = [];
+    let editingId = null;
+    let currentMonth = new Date();
+
+    const elements = {
+      currentDate: document.getElementById('current-date'),
+      currentTime: document.getElementById('current-time'),
+      totalCount: document.getElementById('total-count'),
+      completedCount: document.getElementById('completed-count'),
+      pendingCount: document.getElementById('pending-count'),
+      highCount: document.getElementById('high-count'),
+      scheduleForm: document.getElementById('schedule-form'),
+      title: document.getElementById('title'),
+      category: document.getElementById('category'),
+      description: document.getElementById('description'),
+      date: document.getElementById('date'),
+      time: document.getElementById('time'),
+      priority: document.getElementById('priority'),
+      status: document.getElementById('status'),
+      customCategory: document.getElementById('custom-category'),
+      resetForm: document.getElementById('reset-form'),
+      search: document.getElementById('search'),
+      filterCategory: document.getElementById('filter-category'),
+      filterPriority: document.getElementById('filter-priority'),
+      filterStatus: document.getElementById('filter-status'),
+      filterDate: document.getElementById('filter-date'),
+      sortTasks: document.getElementById('sort-tasks'),
+      scheduleList: document.getElementById('schedule-list'),
+      emptyState: document.getElementById('empty-state'),
+      notificationList: document.getElementById('notification-list'),
+      clearNotifications: document.getElementById('clear-notifications'),
+      requestPermission: document.getElementById('request-permission'),
+      calendarGrid: document.getElementById('calendar-grid'),
+      prevMonth: document.getElementById('prev-month'),
+      nextMonth: document.getElementById('next-month'),
+      statsTotal: document.getElementById('stats-total'),
+      statsCompleted: document.getElementById('stats-completed'),
+      statsPending: document.getElementById('stats-pending'),
+      statsLow: document.getElementById('stats-low'),
+      progressTotal: document.getElementById('progress-total'),
+      progressCompleted: document.getElementById('progress-completed'),
+      progressPending: document.getElementById('progress-pending'),
+      progressLow: document.getElementById('progress-low'),
+      alarmSound: document.getElementById('alarm-sound'),
+    };
+
+    function setCurrentTime() {
+      const now = new Date();
+      elements.currentDate.textContent = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+      elements.currentTime.textContent = now.toLocaleTimeString();
+    }
+
+    function loadStorage() {
+      const storedTasks = localStorage.getItem(STORAGE_KEY);
+      const storedNotifs = localStorage.getItem(NOTIF_KEY);
+      tasks = storedTasks ? JSON.parse(storedTasks) : [];
+      notifications = storedNotifs ? JSON.parse(storedNotifs) : [];
+    }
+
+    function saveStorage() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      localStorage.setItem(NOTIF_KEY, JSON.stringify(notifications));
+    }
+
+    function updateCategoryOptions() {
+      const customCategories = [...new Set(tasks.map(task => task.category).filter(cat => !categories.includes(cat)))];
+      const allCategories = [...categories, ...customCategories];
+      elements.category.innerHTML = allCategories.map(cat => `<option value="${cat}">${cat.replace(/^(\w)/, m => m.toUpperCase())}</option>`).join('');
+      const filterOptions = ['all', ...allCategories];
+      elements.filterCategory.innerHTML = filterOptions.map(value => `<option value="${value}">${value === 'all' ? 'All' : value.replace(/^(\w)/, m => m.toUpperCase())}</option>`).join('');
+    }
+
+    function createTaskObject(data) {
+      return {
+        id: crypto.randomUUID(),
+        title: data.title,
+        description: data.description,
+        date: data.date,
+        time: data.time,
+        priority: data.priority,
+        category: data.category,
+        status: data.status,
+        createdAt: new Date().toISOString(),
+        alarmTriggered: false,
+      };
+    }
+
+    function resetForm() {
+      editingId = null;
+      elements.scheduleForm.reset();
+      elements.category.value = 'study';
+      elements.priority.value = 'high';
+      elements.status.value = 'pending';
+    }
+
+    function showNotification(message, title = 'Alarm Triggered') {
+      const notification = { id: crypto.randomUUID(), title, message, date: new Date().toISOString() };
+      notifications.unshift(notification);
+      if (notifications.length > 20) notifications.pop();
+      saveStorage();
+      renderNotifications();
+      if (Notification.permission === 'granted') {
+        new Notification(title, { body: message, silent: false });
+      }
+    }
+
+    function playAlarmTone() {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+      oscillator.type = 'sine';
+      oscillator.frequency.value = 720;
+      gain.gain.value = 0.08;
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.start();
+      oscillator.stop(ctx.currentTime + 1.2);
+    }
+
+    function triggerAlarm(task) {
+      if (task.alarmTriggered) return;
+      task.alarmTriggered = true;
+      task.status = 'pending';
+      const message = `${task.title} is due at ${task.time} on ${task.date}.`;
+      showNotification(message, 'Task Alarm');
+      playAlarmTone();
+      renderTasks();
+      saveStorage();
+    }
+
+    function checkAlarms() {
+      const now = new Date();
+      tasks.forEach(task => {
+        if (task.status === 'pending' && !task.alarmTriggered) {
+          const due = new Date(`${task.date}T${task.time}`);
+          if (Math.abs(due - now) < 1000) {
+            triggerAlarm(task);
+          }
+        }
+      });
+    }
+
+    function applyFilters(items) {
+      const searchValue = elements.search.value.trim().toLowerCase();
+      const category = elements.filterCategory.value;
+      const priority = elements.filterPriority.value;
+      const status = elements.filterStatus.value;
+      const date = elements.filterDate.value;
+      return items.filter(item => {
+        const matchesSearch = [item.title, item.description, item.category].some(value => value.toLowerCase().includes(searchValue));
+        const matchesCategory = category === 'all' || item.category === category;
+        const matchesPriority = priority === 'all' || item.priority === priority;
+        const matchesStatus = status === 'all' || item.status === status;
+        const matchesDate = !date || item.date === date;
+        return matchesSearch && matchesCategory && matchesPriority && matchesStatus && matchesDate;
+      });
+    }
+
+    function applySort(items) {
+      const sortValue = elements.sortTasks.value;
+      const sorted = [...items];
+      if (sortValue === 'date-asc') {
+        sorted.sort((a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`));
+      } else if (sortValue === 'date-desc') {
+        sorted.sort((a, b) => new Date(`${b.date}T${b.time}`) - new Date(`${a.date}T${a.time}`));
+      } else if (sortValue === 'priority') {
+        const order = { high: 0, medium: 1, low: 2 };
+        sorted.sort((a, b) => order[a.priority] - order[b.priority]);
+      } else if (sortValue === 'createdAt') {
+        sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      }
+      return sorted;
+    }
+
+    function formatDate(dateString) {
+      return new Date(dateString).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    }
+
+    function renderTasks() {
+      const filtered = applyFilters(tasks);
+      const list = applySort(filtered);
+      elements.scheduleList.innerHTML = list.map(task => {
+        const timeLabel = `${formatDate(task.date)} · ${task.time}`;
+        return `
+          <article class="schedule-item ${task.alarmTriggered ? 'active' : ''}" data-id="${task.id}">
+            <div class="schedule-meta">
+              <h3>${task.title}</h3>
+              <p class="small-text">${task.description || 'No description'}</p>
+              <div class="label-pill">
+                <span class="pill ${task.priority}">${task.priority.replace(/^(\w)/, m => m.toUpperCase())}</span>
+                <span class="pill">${task.category.replace(/^(\w)/, m => m.toUpperCase())}</span>
+                <span class="pill">${task.status.replace(/^(\w)/, m => m.toUpperCase())}</span>
+                <span class="pill">${timeLabel}</span>
+              </div>
+            </div>
+            <div class="schedule-controls">
+              <button class="button-secondary button-icon" data-action="toggle-status">${task.status === 'pending' ? 'Mark Complete' : 'Mark Pending'}</button>
+              <button class="button-secondary button-icon" data-action="edit">Edit</button>
+              <button class="button-secondary button-icon" data-action="delete">Delete</button>
+            </div>
+          </article>`;
+      }).join('');
+      elements.emptyState.hidden = list.length > 0;
+      renderStats();
+      renderCalendar();
+    }
+
+    function renderNotifications() {
+      elements.notificationList.innerHTML = notifications.map(note => `
+        <div class="notification-item">
+          <strong>${note.title}</strong>
+          <span>${note.message}</span>
+          <span class="small-text">${new Date(note.date).toLocaleString()}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderStats() {
+      const total = tasks.length;
+      const completed = tasks.filter(task => task.status === 'completed').length;
+      const pending = tasks.filter(task => task.status === 'pending').length;
+      const high = tasks.filter(task => task.priority === 'high').length;
+      const low = tasks.filter(task => task.priority === 'low').length;
+      elements.totalCount.textContent = total;
+      elements.completedCount.textContent = completed;
+      elements.pendingCount.textContent = pending;
+      elements.highCount.textContent = high;
+      elements.statsTotal.textContent = total;
+      elements.statsCompleted.textContent = completed;
+      elements.statsPending.textContent = pending;
+      elements.statsLow.textContent = low;
+      elements.progressTotal.style.width = total ? '100%' : '0%';
+      elements.progressCompleted.style.width = total ? `${Math.round((completed / total) * 100)}%` : '0%';
+      elements.progressPending.style.width = total ? `${Math.round((pending / total) * 100)}%` : '0%';
+      elements.progressLow.style.width = total ? `${Math.round((low / total) * 100)}%` : '0%';
+    }
+
+    function renderCalendar() {
+      const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+      const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+      const startDay = monthStart.getDay();
+      const today = new Date();
+      const days = [];
+      for (let i = 0; i < startDay; i += 1) days.push(null);
+      for (let day = 1; day <= monthEnd.getDate(); day += 1) {
+        days.push(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day));
+      }
+      elements.calendarGrid.innerHTML = days.map(date => {
+        if (!date) return '<div></div>';
+        const dayTasks = tasks.filter(task => task.date === date.toISOString().slice(0, 10));
+        const classes = [ 'calendar-cell' ];
+        if (date.toDateString() === today.toDateString()) classes.push('today');
+        return `
+          <button class="${classes.join(' ')}" type="button" data-date="${date.toISOString().slice(0, 10)}">
+            <span>${date.getDate()}</span>
+            <span class="day-count">${dayTasks.length} task${dayTasks.length === 1 ? '' : 's'}</span>
+          </button>`;
+      }).join('');
+    }
+
+    function populateForm(task) {
+      elements.title.value = task.title;
+      elements.description.value = task.description;
+      elements.date.value = task.date;
+      elements.time.value = task.time;
+      elements.priority.value = task.priority;
+      elements.category.value = task.category;
+      elements.status.value = task.status;
+      editingId = task.id;
+    }
+
+    function handleFormSubmit(event) {
+      event.preventDefault();
+      const customCategory = elements.customCategory.value.trim().toLowerCase();
+      const categoryValue = customCategory || elements.category.value;
+      if (customCategory && !categories.includes(customCategory)) {
+        categories.push(customCategory);
+      }
+      const taskData = {
+        title: elements.title.value.trim(),
+        description: elements.description.value.trim(),
+        date: elements.date.value,
+        time: elements.time.value,
+        priority: elements.priority.value,
+        category: categoryValue,
+        status: elements.status.value,
+      };
+      if (!taskData.title || !taskData.date || !taskData.time) return;
+      if (editingId) {
+        const existing = tasks.find(task => task.id === editingId);
+        Object.assign(existing, taskData);
+        existing.alarmTriggered = false;
+      } else {
+        tasks.push(createTaskObject(taskData));
+      }
+      updateCategoryOptions();
+      saveStorage();
+      renderTasks();
+      resetForm();
+    }
+
+    function handleListClick(event) {
+      const button = event.target.closest('button');
+      if (!button) return;
+      const article = button.closest('.schedule-item');
+      if (!article) return;
+      const taskId = article.dataset.id;
+      const action = button.dataset.action;
+      const taskIndex = tasks.findIndex(item => item.id === taskId);
+      if (taskIndex === -1) return;
+      if (action === 'delete') {
+        const confirmed = confirm('Are you sure you want to delete this schedule?');
+        if (!confirmed) return;
+        tasks.splice(taskIndex, 1);
+      } else if (action === 'edit') {
+        populateForm(tasks[taskIndex]);
+      } else if (action === 'toggle-status') {
+        tasks[taskIndex].status = tasks[taskIndex].status === 'pending' ? 'completed' : 'pending';
+      }
+      saveStorage();
+      renderTasks();
+    }
+
+    function handleCalendarClick(event) {
+      const button = event.target.closest('button[data-date]');
+      if (!button) return;
+      elements.filterDate.value = button.dataset.date;
+      renderTasks();
+    }
+
+    function requestNotificationPermission() {
+      if (!('Notification' in window)) return;
+      Notification.requestPermission().then(status => {
+        if (status === 'granted') {
+          elements.requestPermission.textContent = 'Notifications Enabled';
+          elements.requestPermission.disabled = true;
+        }
+      });
+    }
+
+    function bindEvents() {
+      elements.scheduleForm.addEventListener('submit', handleFormSubmit);
+      elements.resetForm.addEventListener('click', () => {
+        resetForm();
+      });
+      elements.search.addEventListener('input', renderTasks);
+      elements.filterCategory.addEventListener('change', renderTasks);
+      elements.filterPriority.addEventListener('change', renderTasks);
+      elements.filterStatus.addEventListener('change', renderTasks);
+      elements.filterDate.addEventListener('change', renderTasks);
+      elements.sortTasks.addEventListener('change', renderTasks);
+      elements.scheduleList.addEventListener('click', handleListClick);
+      elements.calendarGrid.addEventListener('click', handleCalendarClick);
+      elements.clearNotifications.addEventListener('click', () => {
+        notifications = [];
+        saveStorage();
+        renderNotifications();
+      });
+      elements.requestPermission.addEventListener('click', requestNotificationPermission);
+      elements.prevMonth.addEventListener('click', () => {
+        currentMonth.setMonth(currentMonth.getMonth() - 1);
+        renderCalendar();
+      });
+      elements.nextMonth.addEventListener('click', () => {
+        currentMonth.setMonth(currentMonth.getMonth() + 1);
+        renderCalendar();
+      });
+    }
+
+    function init() {
+      loadStorage();
+      updateCategoryOptions();
+      renderTasks();
+      renderNotifications();
+      setCurrentTime();
+      setInterval(setCurrentTime, 1000);
+      setInterval(checkAlarms, 1000);
+      bindEvents();
+      if (Notification.permission === 'granted') {
+        elements.requestPermission.textContent = 'Notifications Enabled';
+        elements.requestPermission.disabled = true;
+      }
+      const now = new Date();
+      elements.date.value = now.toISOString().slice(0, 10);
+      elements.time.value = now.toTimeString().slice(0, 5);
+    }
+
+    init();
+  </script>
+</body>
+</html>
